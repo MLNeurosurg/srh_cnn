@@ -2,8 +2,9 @@
 # -*- coding: utf-8 -*-
 """
 Created on Mon Nov 19 18:17:35 2018
-
 @author: todd
+
+# Evaluate first layer of convolutions for imagenet trained CNN
 """
 
 from imageio import imread
@@ -11,7 +12,6 @@ from skimage.transform import resize
 from scipy.misc import imresize
 from keras.models import load_model
 from keras.applications import InceptionResNetV2
-
 
 def rescale(image):
 	image -= image.mean()
@@ -24,7 +24,7 @@ def plot_first_layer(model, interpolate = True):
     # Evaluate first layer of convolutions for trained CNN
     cnn_first_layer = model.get_layer(index = 1).get_weights()
     cnn_first_layer = np.asanyarray(cnn_first_layer)[0, : , :, :]
-    
+
     for i in range(32):
         plt.subplot(4,8,i + 1)
         plt.axis("off")
@@ -33,19 +33,9 @@ def plot_first_layer(model, interpolate = True):
         else:
             plt.imshow(rescale(cnn_first_layer[:,:,:,i]))
     plt.show()
-        
 
+# Load models of interest
 model = load_model("/home/todd/Desktop/transfertrain_model.hdf5")
 model_imagenet = InceptionResNetV2(weights="imagenet")
 
-
-test = model.predict(nio_preprocessing_function(imread("/home/todd/Desktop/CNN_Images/nio_training_tiles/schwannoma/411-5238_1b_tile_001_47.png").astype("float"))[None, :,:,:])
-
 plot_first_layer(model, interpolate=False)
-
-# Evaluate first layer of convolutions for imagenet trained CNN
-
-
-
-
-

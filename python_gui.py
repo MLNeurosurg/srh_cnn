@@ -18,7 +18,7 @@ from PIL.ImageTk import PhotoImage
 from functools import partial
 
 img_dir = "/home/todd/Desktop/NIO_088/lymphoma"
-nondiag_dir = "/home/todd/Desktop/filter_quick_dir/nondiagnostic"	
+nondiag_dir = "/home/todd/Desktop/filter_quick_dir/nondiagnostic"
 grey_dir = "/home/todd/Desktop/filter_quick_dir/greymatter"
 white_dir = "/home/todd/Desktop/filter_quick_dir/whitematter"
 pseudo_dir = "/home/todd/Desktop/filter_quick_dir/pseudoprogression"
@@ -69,7 +69,7 @@ def image_batch(root):
 	col = 0
 	row = 0
 	for k, image_file in enumerate(img_list[current_img_index : current_img_index + display_imgs]):
-		
+
 		width = 75
 		height = 75
 
@@ -89,13 +89,12 @@ if __name__ == '__main__':
 	root = Tk()
 	root.title("SRH labelling GUI")
 	image_batch(root)
-	
+
 	button_next = Button(root, text = "Next batch", command=partial(load_next_batch, root)).grid(column = 13, row = 0)  # Need write function for click event
-	
+
 	e1 = Entry(root)
 	e1.grid(column = 13, row = 2)
 
 	jump_to = Button(root, text = "Jump to" , command=partial(go_to_index, root)).grid(column = 13, row = 1)  # Need write function for click event
 
 	root.mainloop()
-

@@ -2,14 +2,6 @@
 # -*- coding: utf-8 -*-
 """
 Created on Fri May 26 18:35:27 2017
-
-@author: orringer-lab
-
-To Do:
-1) Need function to give the accuracies for each of the diagnostic classes
-2) Error evaluation to look at the incorrect cases
-3) TensorBoard
-
 """
 
 # Importing images
@@ -17,11 +9,10 @@ import os
 import numpy as np
 import tensorflow as tf
 
-
 # Keras Deep Learning modules
 from keras.models import load_model
 from keras import backend as K
-from keras.preprocessing.image import ImageDataGenerator # may not need this
+from keras.preprocessing.image import ImageDataGenerator
 # Model and layer import
 from keras.utils import multi_gpu_model
 
@@ -33,7 +24,7 @@ from keras.applications.densenet import DenseNet121
 # Model Layers
 from keras.models import Sequential, Model, Input
 from keras.layers import Input, Dense, Dropout, BatchNormalization, Activation
-from keras.layers import Conv2D, GlobalMaxPool2D, GlobalAveragePooling2D 
+from keras.layers import Conv2D, GlobalMaxPool2D, GlobalAveragePooling2D
 
 # Optimizers
 from keras.optimizers import Adam
@@ -89,15 +80,6 @@ def nio_preprocessing_function(image):
     image[:,:,2] -= 101.5
     return image
 
-def inv_preprocessing_function(image):
-    """
-    Channel-wise means calculated over INV training dataset
-    """
-    image[:,:,0] -= 99.47
-    image[:,:,1] -= 94.45
-    image[:,:,2] -= 102.3
-    return image 
-
 def find_pair_factors_for_CNN(x):
     """
     Function to match batch size and iterations for the validation generator
@@ -117,8 +99,8 @@ train_generator = ImageDataGenerator(
     horizontal_flip=True,
     vertical_flip=True,
     preprocessing_function = nio_preprocessing_function,
-    data_format = "channels_last").flow_from_directory(directory = training_dir, 
-    target_size = (img_rows, img_cols), color_mode = 'rgb', classes = None, class_mode = 'categorical', 
+    data_format = "channels_last").flow_from_directory(directory = training_dir,
+    target_size = (img_rows, img_cols), color_mode = 'rgb', classes = None, class_mode = 'categorical',
     batch_size = 32, shuffle = True)
 #    save_to_dir = "/home/orringer-lab/Desktop/keras_save_dir")
 
@@ -136,19 +118,19 @@ validation_generator = ImageDataGenerator(
     vertical_flip=False,
     preprocessing_function = nio_preprocessing_function,
     data_format = "channels_last").flow_from_directory(directory = validation_dir,
-    target_size = (img_rows, img_cols), color_mode = 'rgb', classes = None, class_mode = 'categorical', 
+    target_size = (img_rows, img_cols), color_mode = 'rgb', classes = None, class_mode = 'categorical',
     batch_size = val_batch, shuffle = False)
 
 ################################
 
-# MODEL BUILDING: 
+# MODEL BUILDING:
 #base_model = InceptionV3(weights=None, include_top=False, input_shape = (img_rows, img_cols, 3)) # must include the input shape to use keras-vis!!!
 base_model = InceptionResNetV2(weights="imagenet", include_top=False, input_shape = (img_rows, img_cols, 3))
 #base_model = DenseNet121(weights=None, include_top=False, input_shape = (img_rows, img_cols, 3))
 # Add a global spatial average pooling layer
 x = base_model.output
 x = GlobalAveragePooling2D()(x)
-x = Dropout(.5)(x)  
+x = Dropout(.5)(x)
 x = Dense(20, kernel_initializer='he_normal')(x)
 x = BatchNormalization(name='todd_batch_norm')(x)
 x = Activation("relu", name='todd_activation')(x)
@@ -178,7 +160,7 @@ parallel_model.compile(optimizer=ADAM, loss="categorical_crossentropy", metrics 
 ###############
 # Callbacks/Early Stopping/ Model Monitoring
 #early_stop = EarlyStopping(monitor='val_acc', min_delta = 0.05, patience=10, mode = 'auto')
-checkpoint = ModelCheckpoint('Final_Resnet_weights.{epoch:02d}-{val_acc:.2f}.hdf5', monitor='val_acc', verbose=0, save_best_only=True, save_weights_only=True, mode='auto', period=1)                                                                                                                                                                                                                                                      
+checkpoint = ModelCheckpoint('Final_Resnet_weights.{epoch:02d}-{val_acc:.2f}.hdf5', monitor='val_acc', verbose=0, save_best_only=True, save_weights_only=True, mode='auto', period=1)
 #tensorboard = TensorBoard(log_dir = "logs", histogram_freq=0, write_graph=False)
 #reduce_LR = ReduceLROnPlateau(monitor='acc', factor=0.5, patience=10, verbose=1, mode='auto', cooldown=0, min_lr=0)
 callbacks_list = [checkpoint]
@@ -189,14 +171,14 @@ class_weight = class_weight.compute_class_weight('balanced', np.unique(train_gen
 weight_dict = dict(zip(list(range(0,total_classes)), class_weight))
 
 os.chdir('/home/todd/Desktop')
-parallel_model.fit_generator(train_generator, steps_per_epoch = 10000, epochs=10, shuffle=True, class_weight = weight_dict, 
+parallel_model.fit_generator(train_generator, steps_per_epoch = 10000, epochs=10, shuffle=True, class_weight = weight_dict,
                              max_queue_size=30, workers=1, initial_epoch=0, verbose = 1, validation_data=validation_generator, validation_steps=val_steps, callbacks=callbacks_list)
 
 
 cnn_predictions = model.predict_generator(validation_generator, steps=val_steps, verbose=1)
 
 # CNN prediction 1d vector. This is the inverse of one-hot encoding
-cnn_predict_1d = np.argmax(cnn_predictions, axis = 1)   
+cnn_predict_1d = np.argmax(cnn_predictions, axis = 1)
 
 # Ground truth generated from the validation generator
 index_validation = validation_generator.classes
@@ -207,4 +189,3 @@ def save_model(model, name):
     model.save(name + ".hdf5")
 
 save_model(model, "transfertrain_model")
-
