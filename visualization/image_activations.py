@@ -1,0 +1,50 @@
+
+
+from keras.models import load_model
+from keras.models import Model
+from imageio import imread
+import numpy as np
+import sys
+from skimage.transform import resize
+from skimage.filters import gaussian
+import matplotlib.pyplot as plt
+from keras.applications import InceptionResNetV2
+
+from preprocessing import cnn_preprocessing
+from 
+
+def rescale(image):
+    image -= image.mean()
+    image /= image.std()
+    image *= 64
+    image += 128
+    return image.clip(min = 0, max=255).astype("uint8")
+
+def plot_activations(model, image, activation_layer):
+    activations_model = Model(inputs=model.input, outputs = model.layers[activation_layer].output) 
+    activations = activations_model.predict(cnn_preprocessing(image[None,:,:,:]))
+    for i in range(32):
+        plt.subplot(4, 8, i + 1)
+        plt.axis("off")
+        plt.imshow(rescale(activations[0,:,:,i]))
+    plt.show()
+
+def plot_activations_imagenet(model, image, activation_layer):
+    activations_model = Model(inputs=model.input, outputs = model.layers[activation_layer].output) 
+    activations = activations_model.predict(image[None,:,:,:] - image.mean())
+    for i in range(32):
+        plt.subplot(4, 8, i + 1)
+        plt.axis("off")
+        plt.imshow(rescale(activations[0,:,:,i]))
+    plt.show()
+
+if __name__ == "__main__":
+
+    # model = InceptionResNetV2(weights = "imagenet")
+    model = load_model("/media/todd/TODD/model_for_activations_Final_Resnet_weights.03-0.86.hdf5")
+    model_imagenet = InceptionResNetV2(weights="imagenet")
+
+    img = imread("/home/todd/Desktop/NIO105-1058_3_tile_013_6.tif").astype(np.float64)
+
+    plot_activations(model_imagenet, img, activation_layer = 3)
+
