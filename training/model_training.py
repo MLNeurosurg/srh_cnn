@@ -27,6 +27,7 @@ from sklearn.utils import class_weight
 from sklearn.metrics import accuracy_score
 
 from training.srh_model import srh_model
+from preprocessing.preprocess import cnn_preprocessing
 
 ##############################
 img_rows = 300

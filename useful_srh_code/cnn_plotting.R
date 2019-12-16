@@ -183,23 +183,18 @@ umich_df$condensed_truelabel <- factor(umich_df$condensed_truelabel, levels = tu
 columbia_df$condensed_predlabel <- factor(columbia_df$condensed_predlabel, levels = tumor_names)
 columbia_df$condensed_truelabel <- factor(columbia_df$condensed_truelabel, levels = tumor_names)
 
+true_prob_df <- true_prob_values(columbia_df)
 
-
-foo = true_prob_values(columbia_df)
-
-ggplot(foo, aes(x=reorder(inv_case, desc(probs)), y = probs, fill = inference_class)) + 
+ggplot(true_prob_df, aes(x=reorder(inv_case, desc(probs)), y = probs, fill = inference_class)) + 
   geom_bar(stat = "identity") +
   scale_fill_brewer(palette = "RdBu") +
   theme(axis.text.x = element_text(angle = 90, hjust = 1))
-
 
 columbia_df %>%
   true_prob_values() %>%
   ggplot(aes(x=reorder(inv_case, desc(probs)), y = probs, fill = correct_status)) + 
   geom_bar(stat = "identity") +
   scale_fill_brewer(palette = "RdBu")
-
-
 
 # umich_df %>%
 #   true_prob_values() %>%

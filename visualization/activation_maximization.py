@@ -1,10 +1,5 @@
-# -*- coding: utf-8 -*-
-"""
-Spyder Editor
 
-This is a temporary script file.
 
-"""
 import matplotlib.pyplot as plt
 import seaborn as sns
 import numpy as np
@@ -27,20 +22,17 @@ import cv2
 
 from preprocessing.preprocess import cnn_preprocessing
 
-# /home/todd/Desktop/Models/Final_Resnet_weights.05-0.86.hdf5
 img_rows = 300
 img_cols = 300
 img_channels = 3
 total_classes = 14
-
 
 def find_layer_types(model, layer_string):
     """
     Function that will find all the layer names based on string match
     E.g. "act" for activation, "conv" for convolutional layers, etc. 
 
-    """
-        
+    """ 
     layer_outputs_all = [layer.output for layer in model.layers]
     layer_outputs = []
     layer_names = []
@@ -54,8 +46,10 @@ def find_layer_types(model, layer_string):
 #Define regularization functions
 def blur_regularization(img, grads, size = (5,5)):
     return cv2.blur(img, size)
+
 def decay_regularization(img, grads, decay = 0.8):
     return decay * img
+
 def clip_weak_pixel_regularization(img, grads, percentile = 1):
     clipped = img
     threshold = np.percentile(np.abs(img), percentile)
@@ -101,7 +95,7 @@ def gradient_ascent_iteration(loss_function, img):
 
 def generate_pattern(layer_name, filter_index, size=150):
     '''
-    Function that uses gradient ascent to maximize the activation of a convolutional layerto help with visualization
+    Function that uses gradient ascent to maximize the activation of a hidden layer
     '''
     layer_output = model.get_layer(layer_name).output
     
@@ -111,18 +105,19 @@ def generate_pattern(layer_name, filter_index, size=150):
     iterate = K.function([model.input], [loss, grads]) 
 
     input_img_data = np.random.random((1, size, size, 3)) # initalize random noise for input image
-    input_img_data -= input_img_data.mean() * 25 # mean center and multiple by variance (around 50 for most images)
+    input_img_data -= input_img_data.mean() * 50 # mean center and multiple by variance (around 50 for most images)
 
-    for i in range(100): # runs gradient ASCENT for 100 steps
+    for i in range(100): # runs gradient ASCENT for N steps
         input_img_data = gradient_ascent_iteration(iterate, input_img_data)
 
     img = input_img_data[0]
     return process_image(img)
 
 
-# Generating a grid of all filter response patterns in a layer
 def filter_activation_grid(layer_name, size = 64, margin = 5):
-    
+    '''
+    Generating a grid of all filter response patterns in a layer
+    '''
     side = int(np.sqrt(size))
     filter_results = {}
     results = np.zeros((side * size + (side-1) * margin, side * size + (side-1) * margin, 3), dtype=np.float64)
@@ -144,14 +139,14 @@ def filter_activation_grid(layer_name, size = 64, margin = 5):
                 results[horizontal_start:horizontal_end, vertical_start:vertical_end, :] = np.zeros((size, size, 3))
             
     plt.figure(figsize=(20,20)) 
-    plt.imshow(results) # show the results
+    plt.imshow(results) 
     
     return filter_results
 
 
 def generate_pattern_time_series(layer_name, filter_index, iterations_record, size=150):
     '''
-    Function that uses gradient ascent to maximize the activation of a convolutional layerto help with visualization
+    Function that will save the AM image after specified iterations of gradients ascent
     '''
     layer_output = model.get_layer(layer_name).output
     
@@ -214,7 +209,7 @@ def layer_statistics(img_list):
         
         act_list = []
         for i in image_list:
-            activation = activation_model.predict(nio_preprocessing_function(i.astype(np.float64))[None,:,:,:]) # predict on each image
+            activation = activation_model.predict(cnn_preprocessing(i.astype(np.float64))[None,:,:,:]) # predict on each image
             act_list.append(activation)
         return act_list
     
@@ -236,30 +231,16 @@ if __name__ == '__main__':
 
     activation_model = models.Model(input=model.inputs, outputs=model.get_layer("activation_159").output) # indexing into the global average pooling layer 
 
-
-    model = load_model("/home/todd/Desktop/transfertrain_model.hdf5")
+    model = load_model("")
     #model = InceptionResNetV2(weights="imagenet")
-
 
     test = generate_pattern("conv2d_159", 12)
     filter_dict = filter_activation_grid("conv2d_3")
 
+    iterations = (1, 5, 10, 20, 50, 100, 200, 500)
+    img = generate_pattern_time_series(layer_name = "conv2d_159", filter_index = 70, iterations_record = iterations) # DEFINITELY USE 8, 14 IS BEST
+    plt.imshow(img)
 
-iterations = (1, 5, 10, 20, 50, 100, 200, 500)
-img = generate_pattern_time_series(layer_name = "conv2d_159", filter_index = 70, iterations_record = iterations) # DEFINITELY USE 8, 14 IS BEST
-plt.imshow(img)
-
-
-image_list = import_images("/home/todd/Desktop/activation_max_figures/Images_for_activation_maps/NIO105_MET")
-
-img = activation_statistics(image_list, filter_num)
-
-test = find_max_activation(activation)
-
-
-max_filter = 159
-test = generate_pattern("activation_159", max_filter)
-plt.imshow(test)
 
 
         

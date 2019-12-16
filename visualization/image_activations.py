@@ -11,7 +11,6 @@ import matplotlib.pyplot as plt
 from keras.applications import InceptionResNetV2
 
 from preprocessing import cnn_preprocessing
-from 
 
 def rescale(image):
     image -= image.mean()
@@ -41,7 +40,7 @@ def plot_activations_imagenet(model, image, activation_layer):
 if __name__ == "__main__":
 
     # model = InceptionResNetV2(weights = "imagenet")
-    model = load_model("/media/todd/TODD/model_for_activations_Final_Resnet_weights.03-0.86.hdf5")
+    model = load_model("")
     model_imagenet = InceptionResNetV2(weights="imagenet")
 
     img = imread("/home/todd/Desktop/NIO105-1058_3_tile_013_6.tif").astype(np.float64)

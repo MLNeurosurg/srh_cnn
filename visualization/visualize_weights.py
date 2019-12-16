@@ -1,6 +1,6 @@
 
 """
-Evaluate a specific layer of convolutions for trained CNN
+Evaluate a specific convolutional layer weights for trained CNN
 """
 
 from imageio import imread
@@ -35,7 +35,7 @@ def plot_layer_filters(model, layer = 1, interpolate = True):
 if __name__ == "__main__":
 
     # Load models of interest
-    model = load_model("/home/todd/Desktop/transfertrain_model.hdf5")
+    model = load_model("")
     model_imagenet = InceptionResNetV2(weights="imagenet")
 
     plot_layer_filters(model, interpolate=False)

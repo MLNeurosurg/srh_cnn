@@ -30,8 +30,8 @@ if __name__ == "__main__":
 
     num_image = 10000
     total_dirs = 2
-    accum_image = directory_importer("/home/todd/Desktop/SRH_genetics/srh_patches/patches/training_patches/training/IDHwt_gbm", num_images=num_image)
-    image = directory_importer("/home/todd/Desktop/SRH_genetics/srh_patches/patches/training_patches/training/IDHmut_1p19q", num_images=num_image, image = accum_image, start_image = True)
+    accum_image = directory_importer("", num_images=num_image)
+    image = directory_importer("", num_images=num_image, image = accum_image, start_image = True)
     
     print(np.mean(image, axis=(0,1))/(num_image * total_dirs))
     print(np.std(image, axis = (0,1))/(num_image * total_dirs))

@@ -156,12 +156,12 @@ if __name__ == '__main__':
 	 'whitematter']
 
     # load model    
-    model = load_model("/home/todd/Desktop/RecPseudo_data/patches/cv_round2/recurmodel_kthfold_0.hdf5")
+    model = load_model("")
     
     # iterate through the directories with 
-    root_dir = "/media/todd/Balaji_Orringer_Lab/Recurrence_data/mosaics" # root directory with each specimen in own directory 
+    root_dir = "" # root directory with each specimen in own directory 
     pred_dict = directory_iterator(root=root_dir)
 
     # save to results to excel spreadsheet
     df = DataFrame(pred_dict)
-    df.to_excel("recur_inference_df_round2_kfold0.xlsx")
+    df.to_excel("")
