@@ -248,8 +248,9 @@ def directory_iterator(root):
 
     return mosaic_dict
 
+
 def export_mahalanobis_scores(mosaic_dict, layer_outputs, metric = "mean"):
-    
+
     df_dict = {}
     for layer in layer_outputs:
         df_dict[layer] = []
