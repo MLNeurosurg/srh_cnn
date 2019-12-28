@@ -10,43 +10,7 @@ from pandas import DataFrame
 from collections import defaultdict
 from pylab import rcParams  
 from preprocessing.preprocess import *
-
-
-def patch_generation(array, input_type = "preprocessed", step_size = 300):
-    """
-    Accepts a square 2-channel numpy array that is the result of stitching together SRH strips
-    
-    CH3minusCH2 <- first channel (red)
-    CH2 <- second channel (green)
-    CH3 <- third channel (blue)
-
-    Returns a (patch_num X 300 X 300 X 3) numpy array for feed forward CNN pass
-
-   	input_type must be either "preprocessed" or "raw" if the mosaic has been preprocessed or not
-
-    """
-
-    side = array.shape[1]
-    starts = list(np.arange(0, side - IMAGE_SIZE + step_size, step_size)) # arange function excludes the last value, so much add a step_size
-
-    patch_array = np.zeros((len(starts) ** 2, IMAGE_SIZE, IMAGE_SIZE, IMAGE_CHANNELS), dtype=float)
-    patch_count = 0
-    for x in starts:
-        for y in starts: # iterate in the x and y direction
-            try:  
-            	if input_type == "raw":
-	                patch_array[patch_count,:,:,:] = channel_rescaling(array[x:x + IMAGE_SIZE, y:y + IMAGE_SIZE, :])
-	                patch_count += 1
-	            
-	            elif input_type == "preprocessed":
-	            	patch_array[patch_count,:,:,:] = array[x:x + IMAGE_SIZE, y:y + IMAGE_SIZE, :]
-	                patch_count += 1
-
-            except:
-                continue
-
-    assert patch_array.shape[0] == len(starts) ** 2, "Incorrect number of patches in patch_array"
-    return patch_array
+from preprocessing.patch_generator import patch_generator
 
 
 def feedforward(patch_array, model):
@@ -101,7 +65,7 @@ def directory_iterator(root):
         if "NIO" in dirpath:
             try: 
 	            mosaic = import_dicom(dirpath)
-	            patches = patch_generation(mosaic)
+	            patches = patch_generator(mosaic)
 	            normalized_dist = prediction(feedforward(patches, model))
 	            
 	            pred_dict["specimen"].append(dirpath.split("/")[-1]) # select only the filename, remove root
