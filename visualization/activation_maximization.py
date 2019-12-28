@@ -175,6 +175,36 @@ def generate_pattern_time_series(layer_name, filter_index, iterations_record, si
             
     return results
 
+def generate_pattern_time_series_gif(layer_name, filter_index, iterations_record, size=150):
+    '''
+    Function that uses gradient ascent to maximize the activation of a convolutional layerto help with visualization
+    '''
+    layer_output = model.get_layer(layer_name).output
+    
+    loss = K.mean(layer_output[:,:,:,filter_index]) #loss function: mean value of input image 
+    grads = K.gradients(loss, model.input)[0] #gradients with respect to loss function and given input image
+    grads /= (K.sqrt(K.mean(K.square(grads))) + 1e-5) #normalize the gradient tensor by dividing by its L2 norm
+    iterate = K.function([model.input], [loss, grads]) 
+
+    input_img_data = np.random.random((1, size, size, 3)) # initalize random noise for input image
+    input_img_data -= input_img_data.mean() * 25 # mean center and multiple by variance (around 50 for most images)
+
+    results_iterations = []
+    num_iterations = iterations_record[-1]
+
+    for i in range(num_iterations + 1):
+        input_img_data = gradient_ascent_iteration(iterate, input_img_data)
+        if i in iterations_record:
+            print("Found it", i)
+            results_iterations.append(process_image(input_img_data[0]))
+
+    return results_iterations
+
+
+def save_gif(image_list, layer_name, filter_index):
+    imageio.mimsave(layer_name + "_" + str(filter_index) + '_time_series.gif', image_list)
+
+    
 def find_max_activation(activation):
     
     bright_img = np.zeros((activation.shape[0], activation.shape[1]))
