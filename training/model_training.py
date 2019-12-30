@@ -117,25 +117,26 @@ if __name__ == '__main__':
 	    target_size = (img_rows, img_cols), color_mode = 'rgb', classes = None, class_mode = 'categorical',
 	    batch_size = val_batch, shuffle = False)
 
-	# instantiate model
-	parallel_model = srh_model(backbone = InceptionResNetV2)
-	# compile model with Adam optimizer
-	ADAM = Adam(lr=0.001, beta_1=0.9, beta_2=0.999, epsilon=1e-08, decay=0.0)
-	parallel_model.compile(optimizer=ADAM, loss="categorical_crossentropy", metrics =['accuracy']) 
+    # instantiate model
+    parallel_model = srh_model(backbone = InceptionResNetV2)
+    
+    # compile model with Adam optimizer
+    ADAM = Adam(lr=0.001, beta_1=0.9, beta_2=0.999, epsilon=1e-08, decay=0.0)
+    parallel_model.compile(optimizer=ADAM, loss="categorical_crossentropy", metrics =['accuracy']) 
 
-	# specify callbacks for training
-	early_stop = EarlyStopping(monitor='val_acc', min_delta = 0.05, patience=10, mode = 'auto')
-	checkpoint = ModelCheckpoint('Final_Resnet_weights.{epoch:02d}-{val_acc:.2f}.hdf5', monitor='val_acc', verbose=0, save_best_only=True, save_weights_only=True, mode='auto', period=1)
-	reduce_LR = ReduceLROnPlateau(monitor='acc', factor=0.5, patience=10, verbose=1, mode='auto', cooldown=0, min_lr=0)
-	callbacks_list = [checkpoint, early_stop, reduce_LR]
+    # specify callbacks for training
+    early_stop = EarlyStopping(monitor='val_acc', min_delta = 0.05, patience=10, mode = 'auto')
+    checkpoint = ModelCheckpoint('Final_Resnet_weights.{epoch:02d}-{val_acc:.2f}.hdf5', monitor='val_acc', verbose=0, save_best_only=True, save_weights_only=True, mode='auto', period=1)
+    reduce_LR = ReduceLROnPlateau(monitor='acc', factor=0.5, patience=10, verbose=1, mode='auto', cooldown=0, min_lr=0)
+    callbacks_list = [checkpoint, early_stop, reduce_LR]
 
-	# class weights to correct for class imbalance
-	class_weight = class_weight.compute_class_weight('balanced', np.unique(train_generator.classes), train_generator.classes)
-	weight_dict = dict(zip(list(range(0,total_classes)), class_weight))
+    # class weights to correct for class imbalance
+    class_weight = class_weight.compute_class_weight('balanced', np.unique(train_generator.classes), train_generator.classes)
+    weight_dict = dict(zip(list(range(0,total_classes)), class_weight))
 
-	# fit generator for model training
-	parallel_model.fit_generator(train_generator, steps_per_epoch = 10000, epochs=20, shuffle=True, class_weight = weight_dict,
-	                             max_queue_size=30, workers=1, initial_epoch=0, verbose = 1, validation_data=validation_generator, validation_steps=val_steps, callbacks=callbacks_list)
+    # fit generator for model training
+    parallel_model.fit_generator(train_generator, steps_per_epoch = 10000, epochs=20, shuffle=True, class_weight = weight_dict,
+                                    max_queue_size=30, workers=1, initial_epoch=0, verbose = 1, validation_data=validation_generator, validation_steps=val_steps, callbacks=callbacks_list)
 
     # validation set prediction and save model
     generator_prediction(parallel_model, validation_generator)
