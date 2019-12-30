@@ -22,7 +22,7 @@ from keras.preprocessing.image import ImageDataGenerator
 from pandas import DataFrame
 
 from preprocessing.preprocess import cnn_preprocessing
-from prediction import patch_generation
+from preprocessing.patch_generator import patch_generator
 
 img_rows = 300
 img_cols = 300
@@ -101,7 +101,7 @@ def mahalanobis_model(parent_model_path):
 
 def average_pool_batch(model_output):
     
-    # check if just a  2D array
+    # check if just a 2D array
     if len(model_output.shape) == 2: 
         return model_output
     
@@ -203,18 +203,6 @@ def mahalanobis_score(test_ouput, mu_vector, sigma):
             continue
     return (mah_score, target_mah)
 
-def mahalanobis_score_ensemble(class_cond_object, test_output):
-
-    stats = {}
-    score = 0
-    mu_sigma_dicts = class_cond_object.layer_dict
-
-    for i, layer in enumerate(class_cond_object.layer_list):
-        mu, sigma = mu_sigma_dicts[layer][0], mu_sigma_dicts[layer][1]
-        stats[layer] = mahalanobis_stats(test_output[i], mu, sigma)
-    
-    return stats
-
 def mahalanobis_stats(representaiton_output, mu_vector_dict, sigma):
     scores = []
     for i in representaiton_output:
@@ -226,6 +214,18 @@ def mahalanobis_stats(representaiton_output, mu_vector_dict, sigma):
     print("Std score: " + str(np.std(scores)))
     print("90th percentile score: " + str(np.percentile(scores, 90)))
     return (np.mean(scores), np.std(scores), np.percentile(scores, 90))
+
+def mahalanobis_score_ensemble(class_cond_object, test_output):
+
+    stats = {}
+    score = 0
+    mu_sigma_dicts = class_cond_object.layer_dict
+
+    for i, layer in enumerate(class_cond_object.layer_list):
+        mu, sigma = mu_sigma_dicts[layer][0], mu_sigma_dicts[layer][1]
+        stats[layer] = mahalanobis_stats(test_output[i], mu, sigma)
+    
+    return stats
 
 def directory_iterator(root):
     mosaic_dirs = os.listdir(root)
@@ -239,7 +239,7 @@ def directory_iterator(root):
         counter += 1
 
         mosaic = import_raw_dicom(os.path.join(root, mosaic_dir))
-        patches = patch_generation(mosaic)
+        patches = patch_generator(mosaic)
         inference_mah = feedforward(patches, model=output_model)
         score_dict = mahalanobis_score_ensemble(maha_class, inference_mah)
 
@@ -247,7 +247,6 @@ def directory_iterator(root):
         print(counter)
 
     return mosaic_dict
-
 
 def export_mahalanobis_scores(mosaic_dict, layer_outputs, metric = "mean"):
 
@@ -268,7 +267,6 @@ def export_mahalanobis_scores(mosaic_dict, layer_outputs, metric = "mean"):
 
     df = DataFrame(df_dict)
     df.to_excel("rare_cases_"+ str(metric) + "_mahalanobis.xlsx")
-
 
 
 def check_means(mosaic_dict):
@@ -309,6 +307,6 @@ if __name__ == "__main__":
     export_mahalanobis_scores(mosaic_dict, layer_outputs, metric="mean")
 
     mosaic = import_raw_dicom("")
-    patches = patch_generation(mosaic)
+    patches = patch_generator(mosaic)
     inference_mah = feedforward(patches, model=output_model)
     mosaic_dict = mahalanobis_score_ensemble(maha_class, inference_mah)

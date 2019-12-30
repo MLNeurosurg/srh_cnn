@@ -1,12 +1,7 @@
 '''
-Functions and subroutines to evaluate predictions of SRH-CNN model over full mosaics and patients
+Functions and subroutines to evaluate predictions of SRH-CNN model over full mosaics and patients.
 
-This scripts is designed specifically to: 
-1) Import images that have been tiled, saved and imported using specific routines
-2) Wrapper for keras ImageDataGenerator object
-
-Much easier to use the prediction subroutines to help with model evaluation
-
+This scripts is designed specifically to import images that have already been patched, saved and imported using specific routines.
 '''
  
 import os
@@ -791,8 +786,6 @@ def inference_heatmap(model_object, mosaic_name, inference_node = "tumor", heatm
         array += model_object.diagnosis_heatmap(mosaic_name, i, heatmap_type=heatmap_type)
     
     return array
-
-
     
 def plot_confusion_matrix(cm, classes, title='Confusion matrix', cmap=plt.cm.Blues):
     plt.imshow(cm, interpolation='nearest', cmap='Blues')
@@ -874,7 +867,7 @@ def mosaic_level_multiclass_confusion_matrix(model_object, filter_normal = True,
 
     if not normalize:
         cm = confusion_matrix(ground_truth, preds)
-        # Plot non-normalized mutliclass confusion matrix
+        # Plot unnormalized mutliclass confusion matrix
         plot_confusion_matrix(cm, classes=included_classes, title='Multiclass diagnostic confusion matrix')
         return cm
 
@@ -1111,5 +1104,6 @@ class ROCAnalysis():
 
     print("SRH_CNN evaluation script imported.")
     
-    
-    
+
+if __name__ == "__main__":
+    pass

@@ -7,7 +7,6 @@ Script that:
 Use patch_generator_model_filter.py to use the trained model to filter images into seperate directories
 '''
 
-
 # standard python
 import os
 import sys
@@ -31,23 +30,31 @@ from preprocessing.io import import_preproc_dicom, import_raw_dicom
 IMAGE_SIZE = 300
 
 def starts_finder(side, stride, image_size): 
-    
+    """
+    Helper function used in patch_generator function to find maximum number of patches that can be obtained starting with the upper left hand pixel as index 0. 
+    We do NOT use padding for our prediction or heatmaps, so the right edge of the image may be excluded from prediction/segmentation. 
+    side = mosaic image side (height or width)
+    stride = step size for sliding window algorithm
+    image_size = patch image size (height or width)
+    """
     starts = [0] 
     # loop until off the image
     while (starts[-1] + stride + image_size) <= side:
         starts.append(starts[-1] + stride)
     return starts
 
-def patch_generator(preprocessed_mosaic, step_size = 200):
-    
+def patch_generator(preprocessed_mosaic, step_size = 100):
+    """
+    Function that accepted preprocessed mosaic 
+    """
     starts = starts_finder(side = preprocessed_mosaic.shape[0], stride = step_size, image_size=IMAGE_SIZE)
     patch_dict = {}
     counter1 = 0
 
-    # rescale the channels
+    # loop through the x and y axes
     for y in starts:
         for x in starts:
-            # select the region of th 
+            # select the region of the mosaic
             patch = preprocessed_mosaic[y:y + IMAGE_SIZE, x:x + IMAGE_SIZE, :]
             _, CH2, CH3 = return_channels(patch)
             CH2 = min_max_rescaling(CH2)
@@ -67,7 +74,7 @@ def patch_generator(preprocessed_mosaic, step_size = 200):
 
     return patch_dict
     
-def patch_filter_saver(patch_dict, src_dir):
+def patch_saver(patch_dict, src_dir):
 
     # patch counters
     saved = 0
@@ -83,9 +90,8 @@ def patch_filter_saver(patch_dict, src_dir):
 
 def directory_list(parent_dir):
     """
-    Function to return a 
+    Function to return a list of directories that contain raw SRH strips 
     """
-
     dir_list = sorted(os.listdir(parent_dir))
 
     directory_list = []
@@ -113,6 +119,6 @@ if __name__ == "__main__":
         patches = patch_generator(mosaic, step_size=200)
         # save patches
         os.chdir(dest_dir)
-        patch_filter_saver(patches, src_dir = strip_directory)
+        patch_saver(patches, src_dir = strip_directory)
 
 

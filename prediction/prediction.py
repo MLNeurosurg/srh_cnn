@@ -126,6 +126,6 @@ if __name__ == '__main__':
     root_dir = "" # root directory with each specimen in own directory 
     pred_dict = directory_iterator(root=root_dir)
 
-    # save to results to excel spreadsheet
+    # save to results to spreadsheet
     df = DataFrame(pred_dict)
     df.to_excel("")

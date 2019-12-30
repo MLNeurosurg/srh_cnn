@@ -11,8 +11,9 @@ from scipy import stats
 import matplotlib.pyplot as plt
 import seaborn as sns
 
-from preprocessing.preprocess import return_channels, channel_preprocessing, cnn_preprocessing
+from preprocessing.preprocess import return_channels, channel_preprocessing, cnn_preprocessing, 
 from preprocessing.io import import_preproc_dicom, import_raw_dicom
+from preprocessing.patch_generator import patch_generator
 
 IMAGE_SIZE, IMAGE_CHANNELS = 300, 3
 TOTAL_CLASSES = 3
@@ -66,41 +67,6 @@ def indices_map(array, step_size = STEP_SIZE):
 	
 	return init_array
 
-def patch_dictionary(image, model, indices_map, image_preprocced = True, step_size = STEP_SIZE):
-	"""
-	Function that generates a set of patches as values and the patch_number is the key in the dictionary
-	key = patch_number
-	value = patch_object
-	"""
-	assert image.shape[0] == indices_map.shape[0], "Image and indices_map are different dimensions"
-	assert step_size <= IMAGE_SIZE, "Step size is too large. Must be less than 300."
-
-	starts = np.arange(image.shape[0]-(IMAGE_SIZE - step_size), step = step_size) # subtract step size to include the last 300 X 300 patch
-	patch_dict = {}
-	counter = 0
-	for y in starts:
-		for x in starts:
-			patch_dict[counter] = Patch(patch_num = counter, num_classes = TOTAL_CLASSES)
-
-			# preprocess patch
-			patch = image[y:y + IMAGE_SIZE, x:x + IMAGE_SIZE, :]
-			
-			if not image_preprocced:
-				patch = channel_preprocessing(patch)
-
-			# forward pass
-			patch = cnn_preprocessing(patch)
-			pred = model.predict(patch[None,:,:,:])
-
-			# update patch_object
-			patch_dict[counter].set_softmax(pred)
-			patch_dict[counter].set_indices(np.unique(indices_map[y:y + IMAGE_SIZE, x:x + IMAGE_SIZE]))
-			counter += 1
-			print(counter)
-
-	return patch_dict
-
-
 def srh_heatmap(patch_dict, image_size, step_size = STEP_SIZE):
 	"""
 	Function that takes a patch dictionary and mosaic_size (eg mosaic.shape[0])
@@ -146,7 +112,7 @@ if __name__ == '__main__':
     heatmap_indices = indices_map(mosaic, step_size=300)
 
     # predict on each patch
-    patch_dict = patch_dictionary(mosaic, model, heatmap_indices, step_size = 300)
+    patch_dict = patch_generator(mosaic, model, heatmap_indices, step_size = STEP_SIZE)
 
     # generate heatmap predictions
-    heatmap = srh_heatmap(patch_dict, image_size, 300)
+    heatmap = srh_heatmap(patch_dict, image_size, step_size = STEP_SIZE)

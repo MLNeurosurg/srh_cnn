@@ -24,7 +24,6 @@ from keras.layers import Conv2D, GlobalMaxPool2D, GlobalAveragePooling2D
 
 # Open-source models
 from keras.applications.inception_resnet_v2 import InceptionResNetV2
-
 from model_training import srh_model
 
 '''
@@ -56,7 +55,6 @@ WITHOUT NORMAL and Gliosis
  'pilocyticastrocytoma': 8,
  'pituitaryadenoma': 9,
  'schwannoma: 10}
-
 '''
 
 parallel_model = srh_model()
@@ -68,7 +66,6 @@ parallel_model.load_weights("/home/todd/Desktop/Models/Final_Resnet_weights.03-0
 def cnn_predictions(model, validation_generator):
     cnn_predictions = model.predict_generator(validation_generator, steps = val_steps, verbose = True)
     return cnn_predictions
-
 
 # Specify directory with images for prediction
 validation_dir = '/home/todd/Desktop/CNN_Images/columbia_trial_tiles'
@@ -87,57 +84,21 @@ validation_generator = ImageDataGenerator(
     target_size = (img_rows, img_cols), color_mode = 'rgb', classes = None, class_mode = 'categorical',
     batch_size=val_batch, shuffle = False)
 
-# Model predictions
+# model predictions
 preds = cnn_predictions(parallel_model, validation_generator)
 
 # instantiate model object
 model_object = TrainedCnnModel(parallel_model, validation_generator, preds)
 
-#
 # evaluate model performance
-bar = model_object.mosaic_softmax_all_normal_filter()
-baz = model_object.patient_softmax_all_normal_filter()
+model_object.mosaic_softmax_all_normal_filter()
+model_object.patient_softmax_all_normal_filter()
 
-## multiclass confusion matrices
-#tile_level_multiclass_confusion_matrix(model_object, normalize=True)
-#mosaic_level_multiclass_confusion_matrix(model_object, normalize=True)
-#patient_level_multiclass_confusion_matrix(model_object, normalize=True)
-#
+# multiclass confusion matrices
+tile_level_multiclass_confusion_matrix(model_object, normalize=True)
+mosaic_level_multiclass_confusion_matrix(model_object, normalize=True)
+patient_level_multiclass_confusion_matrix(model_object, normalize=True)
 
-test = model_object.IOU_inference_classes("NIO158-3265_43")
-
-mosaic = "NIO088-6438_3"
-single_model_heatmap(model_object, mosaic, 4, cmap='Spectral_r', heatmap_type = "ground_truth")
-
-IOU_inference_list = []
-for mosaic in model_object.mosaic_list():
-    print(mosaic)
-    try:
-        IOU_inference_list.append(model_object.IOU_inference_classes(mosaic))
-    except:
-        continue
-    
-iou_inference_dict = {}
-for i in IOU_inference_list:
-    for key, value in i.items():
-        iou_inference_dict[key] = value
-
-import pandas as pd
-iou_df = pd.DataFrame((iou_inference_dict))        
-iou_df.to_excel("columbia_inference_iou.xlsx")
-
-tumor_mean = list(iou_df.iloc[0, :])
-tumor_mean = [val for val in tumor_mean if val >= 0.3]
-np.mean(tumor_mean)
-
-heatmap = model_object.diagnosis_heatmap(mosaic, 8, heatmap_type="ground_truth")
-plt.imshow(heatmap, cmap='Spectral_r', vmin=0,vmax=1)
-matplotlib.pyplot.imsave("NIO088_lymphoma.png", heatmap, cmap='Spectral_r', vmin=0,vmax=1)
-
-
-from PIL import Image
-img = Image.fromarray((heatmap * 255).astype(np.uint8))
-img.save("NIO088_non_gs.png")
 
 
 

@@ -31,16 +31,9 @@ import pydicom as dicom
 from preprocessing.preprocess import *
 from preprocessing.registration import *
 from preprocessing.io import import_preproc_dicom, import_raw_dicom
+from preprocessing.patch_generator import patch_generator, starts_finder
 
 IMAGE_SIZE = 300
-
-def starts_finder(side, stride, image_size): 
-    
-    starts = [0] 
-    # loop until off the image
-    while (starts[-1] + stride + image_size) <= side:
-        starts.append(starts[-1] + stride)
-    return starts
 
 def import_filtering_model(model_path, gpu_number = 1):
 
@@ -66,46 +59,25 @@ def import_filtering_model(model_path, gpu_number = 1):
         parallel_model.load_weights(model_path)
     return parallel_model
 
-def patch_generator(preprocessed_mosaic, step_size = 200):
-    
-    starts = starts_finder(side = preprocessed_mosaic.shape[0], stride = step_size, image_size=IMAGE_SIZE)
+def patch_generator_cnn_filter(preprocessed_mosaic, step_size = 200):
+    """
+    Returns a tuple containing a dictionary of regular patches and a dictionary of patches for CNN prediction. 
+    This function is needed because some elements of our preprocessing pipeline has changed. 
+    """
+    starts = starts_finder(side = preprocessed_mosaic.shape[0], stride = step_size, image_size = IMAGE_SIZE)
     cnn_patches = {}
-    patch_dict = {}
-    counter1 = 0
-    counter2 = 0
+    counter = 0
 
     # images for CNN ONLY
     for y in starts:
         for x in starts:
             patch = preprocessed_mosaic[y:y + IMAGE_SIZE, x:x + IMAGE_SIZE, :]
             patch = channel_rescaling(patch)
-            cnn_patches[counter1] = patch
-            counter1 += 1
-            print("cnn_patch")
-            print(counter1)
+            cnn_patches[counter] = patch
+            counter += 1
+            print(counter)
 
-    # rescale the channels
-    for y in starts:
-        for x in starts:
-            # select the region of th 
-            patch = preprocessed_mosaic[y:y + IMAGE_SIZE, x:x + IMAGE_SIZE, :]
-            _, CH2, CH3 = return_channels(patch)
-            CH2 = min_max_rescaling(CH2)
-            CH3 = min_max_rescaling(CH3)
-            
-            # channel subtraction
-            subtracted_array = np.subtract(CH3, CH2) # CH3 minus CH2
-            subtracted_array[subtracted_array < 0] = 0.0 # negative values set to zero
-
-            # concatentate the postprocessed images
-            stack = np.zeros((CH2.shape[0], CH2.shape[1], 3), dtype=np.float)
-            stack[:, :, 0] = subtracted_array
-            stack[:, :, 1] = CH2
-            stack[:, :, 2] = CH3
-            patch_dict[counter2] = stack * 255
-            counter2 += 1
-            print("real_patch")
-            print(counter2)
+    patch_dict = patch_generator(preprocessed_mosaic, step_size = step_size)
 
     return patch_dict, cnn_patches
     
@@ -194,7 +166,7 @@ if __name__ == "__main__":
         # import mosaic
         mosaic = import_preproc_dicom(strip_directory, flatten = False)
         # returns the patches to save and patches to pass to CNN
-        patches, cnn_patch_dict = patch_generator(mosaic, step_size=200)
+        patches, cnn_patch_dict = patch_generator_cnn_filter(mosaic, step_size=200)
         # save patches
         patch_filter_saver(patches, cnn_patch_dict, src_dir = strip_directory, model = filtering_model)
 
