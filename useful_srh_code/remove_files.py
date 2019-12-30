@@ -1,7 +1,6 @@
 
 '''
 Delete files from directory based on string matching
-
 '''
 import os
 

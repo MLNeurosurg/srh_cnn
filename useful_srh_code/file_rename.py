@@ -1,7 +1,9 @@
 
+# example file name: "/home/todd/Desktop/411-5238/411-5238_3"
+
 import os
 
-for root, dirs, files in os.walk("/home/todd/Desktop/411-5238/411-5238_3"):
+for root, dirs, files in os.walk(""):
     if not files:
         continue
     prefix = os.path.basename(root)
