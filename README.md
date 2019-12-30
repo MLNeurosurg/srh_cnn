@@ -17,7 +17,7 @@ Code repository for our paper titled "Near real-time intraoperative brain tumor 
 <img src="figures/Figure_3.png" width="4000">
 <!-- ![Figure 3](/figures/Figure_3.png) -->
 
-<p float="left">
+<p float="center">
   <img src="figures/conv2d_159_148_time_series.gif" width="125" height="125" />
   <img src="figures/conv2d_159_14_time_series.gif" width="125" height="125" />
   <img src="figures/conv2d_159_12_time_series.gif" width="125" height="125" />
