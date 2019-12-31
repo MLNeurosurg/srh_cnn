@@ -10,7 +10,7 @@ import shutil
 import numpy as np
 
 
-def make_directories(src, dest):
+def make_strip_directories(src, dest):
     
     # loop over all the directories in the root dir
     for dirs in os.listdir(src):
@@ -51,6 +51,6 @@ if __name__ == "__main__":
     root = ""
     dest = ""
 
-    make_directories(root, dest)
+    make_strip_directories(root, dest)
 
 
