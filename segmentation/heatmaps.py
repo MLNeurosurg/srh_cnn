@@ -1,3 +1,4 @@
+#!/usr/bin/env python3
 
 # standard python
 import os
@@ -9,9 +10,10 @@ import pandas as pd
 from scipy import stats
 # plotting
 import matplotlib.pyplot as plt
-import seaborn as sns
 
-from preprocessing.preprocess import return_channels, channel_preprocessing, cnn_preprocessing, 
+from keras.models import load_model  
+
+from preprocessing.preprocess import return_channels, channel_rescaling, cnn_preprocessing 
 from preprocessing.io import import_preproc_dicom, import_raw_dicom
 from preprocessing.patch_generator import starts_finder
 
@@ -67,7 +69,7 @@ def indices_map(array, step_size = STEP_SIZE):
 	
 	return init_array
 
-def patch_dictionary(image, model, indices_map, image_preprocced = True, step_size = STEP_SIZE):
+def patch_dictionary(image, model, indices_map, image_preprocced = False, step_size = STEP_SIZE):
 	"""
 	Function that generates a set of patches as values and the patch_number is the key in the dictionary
 	key = patch_number
@@ -87,11 +89,11 @@ def patch_dictionary(image, model, indices_map, image_preprocced = True, step_si
 			patch = image[y:y + IMAGE_SIZE, x:x + IMAGE_SIZE, :]
 			
 			if not image_preprocced:
-				patch = channel_preprocessing(patch)
+				patch = channel_rescaling(patch)
 
 			# forward pass
 			patch = cnn_preprocessing(patch)
-			pred = model.predict(patch[None,:,:,:])
+			pred = model.predict(patch[None,:,:,:], batch_size = 1)
 
 			# update patch_object
 			patch_dict[counter].set_softmax(pred)
@@ -131,13 +133,26 @@ def srh_heatmap(patch_dict, image_size, step_size = STEP_SIZE):
 	height_width = int(np.sqrt(heatmap_pixels))
 	heatmap = flattened_image.reshape((height_width, height_width, TOTAL_CLASSES))
 	return heatmap
-		
+
+def display_image(heatmap, class_index):
+	"""
+	Function to display heatmap results for a 
+	"""
+	plt.imshow(heatmap[:,:,class_index])
+	plt.show()
+
+def save_heatmap_image(file_name, heatmap, class_index, cmap='Greys_r'):
+	"""
+	Saves the greyscale heatmap image for specific class
+	"""
+	plt.imsave(file_name, heatmap[:,:,class_index], cmap='Greys_r', vmin=0,vmax=1)
+
 
 if __name__ == '__main__':
 
     # import model and specify image directory
-    model = load_model("")
-    image_dir = ""
+    model = load_model("/home/todd/Desktop/RecPseudo_project/patches/cv_round2/recurmodel_kthfold_2.hdf5")
+    image_dir = "/home/todd/Desktop/Recurrence_mosaics_figures/NIODS10070_2"
 
     # import image
     mosaic = import_preproc_dicom(image_dir)
@@ -147,7 +162,10 @@ if __name__ == '__main__':
     heatmap_indices = indices_map(mosaic, step_size = STEP_SIZE)
 
     # predict on each patch
-    patch_dict = patch_dictionary(mosaic, model, heatmap_indices, step_size = STEP_SIZE)
+    patch_dict = patch_dictionary(mosaic, model, heatmap_indices, image_preprocced=False, step_size = STEP_SIZE)
 
     # generate heatmap predictions
     heatmap = srh_heatmap(patch_dict, image_size, step_size = STEP_SIZE)
+
+	plt.imshow(heatmap[:,:,1])
+	plt.show()

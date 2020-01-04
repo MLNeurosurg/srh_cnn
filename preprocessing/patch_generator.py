@@ -1,3 +1,4 @@
+#!/usr/bin/env python3
 
 '''
 Script that: 
@@ -43,7 +44,7 @@ def starts_finder(side, stride, image_size):
         starts.append(starts[-1] + stride)
     return starts
 
-def patch_generator(preprocessed_mosaic, step_size = 100):
+def patch_generator(preprocessed_mosaic, step_size = 100, old_preprocess = False):
     """
     Function that accepted preprocessed mosaic 
     """
@@ -63,6 +64,9 @@ def patch_generator(preprocessed_mosaic, step_size = 100):
             # channel subtraction
             subtracted_array = np.subtract(CH3, CH2) # CH3 minus CH2
             subtracted_array[subtracted_array < 0] = 0.0 # negative values set to zero
+
+            if old_preprocess:
+                subtracted_array = min_max_rescaling(subtracted_array)
 
             # concatentate the postprocessed images
             stack = np.zeros((CH2.shape[0], CH2.shape[1], 3), dtype=np.float)
