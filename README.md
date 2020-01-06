@@ -27,6 +27,5 @@ Code repository for our paper titled "Near real-time intraoperative brain tumor 
   <img src="figures/conv2d_159_13_time_series.gif" width="125" height="125" />
 </p>
 
-
-
-
+## Semantic segmentation of SRH images identifies tumor-infiltrated and diagnostic regions
+![Figure 4](/figures/Figure_4.png)
