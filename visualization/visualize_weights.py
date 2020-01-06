@@ -1,3 +1,4 @@
+#!/usr/bin/env python3
 
 """
 Evaluate a specific convolutional layer weights for trained CNN

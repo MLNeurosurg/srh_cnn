@@ -12,7 +12,8 @@ from collections import defaultdict
 from pylab import rcParams  
 
 from preprocessing.preprocess import *
-from preprocessing.patch_generator import patch_generator, import_preproc_dicom
+from preprocessing.patch_generator import patch_generator
+from preprocessing.io import import_srh_dicom
 
 # class list
 CLASS_NAMES = ['ependymoma',
@@ -131,7 +132,7 @@ def directory_iterator(root):
     for dirpath, dirname, files in os.walk(root): 
         if "NIO" in dirpath:
             try: 
-	            mosaic = import_preproc_dicom(dirpath)
+	            mosaic = import_srh_dicom(dirpath)
 	            patches = patch_generator(mosaic)
 	            normalized_dist = prediction(feedforward(patches, model))
 	            

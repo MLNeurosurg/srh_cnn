@@ -36,7 +36,7 @@ library(ROCR)
 # "whitematter": []
 # }
 
-setwd("/home/todd/Desktop/IOU_spreadsheets/")
+setwd("")
 # tumor_names <- c("ependymoma", "glioblastoma", "lowgradeglioma", "lymphoma", "medulloblastoma", "meningioma", "metastasis", "pilocyticastrocytoma", "pituitaryadenoma", "schwannoma")
 tumor_names <- c("glioma", "ependymoma", "glioblastoma","greymatter", "lowgradeglioma", "lymphoma", "medulloblastoma", "meningioma", "metastasis","nondiagnostic", "pilocyticastrocytoma", "pituitaryadenoma", "pseudoprogression", "schwannoma", "whitematter")
 normal_names <- c("greymatter", "whitematter", "pseudoprogression")
@@ -81,7 +81,7 @@ columbia_tumors <- add_label_column(columbia_tumors, "columbia_tumors")
 
 # concatenate all the cases in the trial
 full_df <- rbind(umich_normals, umich_tumors, columbia_normals, columbia_tumors)
-full_df <- filter(full_df, condensed_truelabel != "schwannoma")
+# full_df <- filter(full_df, condensed_truelabel != "schwannoma")
 
 # find the maximum value for correct case
 argmax_function <- function(dataframe) {
@@ -169,12 +169,7 @@ true_prob_values <- function(dataframe) {
   colnames(df) <- c("inv_case", "condensed_predlabel", "condensed_truelabel", "frozen", "label_vect", "correct_status", "inference_class", "probs", "iou")
   return(df)
 }
-schwannoma_df <- filter(full_df, condensed_predlabel == "schwannoma" & condensed_truelabel == "meningioma")
-schwannoma_df$meningioma <- schwannoma_df$meningioma + schwannoma_df$schwannoma
-schwannoma_df$condensed_predlabel <- rep("meningioma", nrow(schwannoma_df))
 
-full_df <- full_df[!(full_df$condensed_predlabel == "schwannoma" & full_df$condensed_truelabel == "meningioma"),]
-full_df <- rbind(full_df, schwannoma_df)
 umich_df <- filter(full_df, label_vect == "umich_tumors" | label_vect == "umich_normals")
 columbia_df <- filter(full_df, label_vect == "columbia_tumors" | label_vect == "columbia_normals")
 

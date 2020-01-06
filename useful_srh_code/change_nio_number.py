@@ -1,4 +1,8 @@
+#!/usr/bin/env python3
 
+"""
+Simple script to change the DICOM metadata if needed. Used to deidentify the images. 
+"""
 
 import pydicom as dicom
 import os

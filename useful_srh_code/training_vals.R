@@ -4,8 +4,8 @@ library(readxl)
 library(ggplot2)
 library(tidyr)
 
-setwd("/home/todd/Desktop/spreadsheets/")
-cnn_df <- read_excel("/home/todd/Desktop/spreadsheets/cnn_training_final.xlsx")
+setwd("")
+cnn_df <- read_excel("")
 
 plotting_function <- function(df){
   df %>%

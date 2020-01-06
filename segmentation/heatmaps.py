@@ -14,7 +14,7 @@ import matplotlib.pyplot as plt
 from keras.models import load_model  
 
 from preprocessing.preprocess import return_channels, channel_rescaling, cnn_preprocessing 
-from preprocessing.io import import_preproc_dicom, import_raw_dicom
+from preprocessing.io import import_srh_dicom
 from preprocessing.patch_generator import starts_finder
 
 IMAGE_SIZE, IMAGE_CHANNELS = 300, 3
@@ -155,7 +155,7 @@ if __name__ == '__main__':
     image_dir = "/home/todd/Desktop/Recurrence_mosaics_figures/NIODS10070_2"
 
     # import image
-    mosaic = import_preproc_dicom(image_dir)
+    mosaic = import_srh_dicom(image_dir)
     image_size = mosaic.shape[0]
 
     # index map to allow for patch-tile mapping

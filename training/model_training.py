@@ -1,4 +1,4 @@
-
+# !/usr/bin/env python3
 
 # Importing standard libraries
 import os
@@ -118,7 +118,7 @@ if __name__ == '__main__':
 	    batch_size = val_batch, shuffle = False)
 
     # instantiate model
-    parallel_model = srh_model(backbone = InceptionResNetV2)
+    parallel_model = srh_model(backbone = InceptionResNetV2, gpu_num=2)
     
     # compile model with Adam optimizer
     ADAM = Adam(lr=0.001, beta_1=0.9, beta_2=0.999, epsilon=1e-08, decay=0.0)
@@ -126,7 +126,7 @@ if __name__ == '__main__':
 
     # specify callbacks for training
     early_stop = EarlyStopping(monitor='val_acc', min_delta = 0.05, patience=10, mode = 'auto')
-    checkpoint = ModelCheckpoint('Final_Resnet_weights.{epoch:02d}-{val_acc:.2f}.hdf5', monitor='val_acc', verbose=0, save_best_only=True, save_weights_only=True, mode='auto', period=1)
+    checkpoint = ModelCheckpoint('Final_weights.{epoch:02d}-{val_acc:.2f}.hdf5', monitor='val_acc', verbose=0, save_best_only=True, save_weights_only=True, mode='auto', period=1)
     reduce_LR = ReduceLROnPlateau(monitor='acc', factor=0.5, patience=10, verbose=1, mode='auto', cooldown=0, min_lr=0)
     callbacks_list = [checkpoint, early_stop, reduce_LR]
 

@@ -1,6 +1,7 @@
+#!/usr/bin/env python3
+
 '''
 Script to build our SRH model
-
 '''
 # Model Layers
 from keras.models import Sequential, Model, Input
@@ -15,7 +16,7 @@ from keras.applications.densenet import DenseNet121
 
 TOTAL_CLASSES = 14
 
-def srh_model(backbone, input_shape = (300, 300, 3), weights = False, dropout = 0.5, gpu_num = 2):
+def srh_model(backbone, input_shape = (300, 300, 3), weights = False, dropout = 0.5, gpu_num = 1):
 	"""
 	SRH CNN model import
 	"""

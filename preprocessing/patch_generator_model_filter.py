@@ -1,3 +1,4 @@
+#!/usr/bin/env python3
 
 '''
 Script that 
@@ -30,13 +31,16 @@ import pydicom as dicom
 
 from preprocessing.preprocess import *
 from preprocessing.registration import *
-from preprocessing.io import import_preproc_dicom, import_raw_dicom
+from preprocessing.io import import_srh_dicom
 from preprocessing.patch_generator import patch_generator, starts_finder
 
 IMAGE_SIZE = 300
 
 def import_filtering_model(model_path, gpu_number = 1):
 
+    """
+    Imports a keras model that was saved as weights only
+    """
     img_rows = 300
     img_cols = 300
     total_classes = 14
@@ -54,7 +58,10 @@ def import_filtering_model(model_path, gpu_number = 1):
     model = Model(inputs=base_model.input, outputs=predictions)
 
     if gpu_number:
+        
         parallel_model = multi_gpu_model(model, gpus=gpu_number)
+        
+        return parallel_model
     else:
         parallel_model.load_weights(model_path)
     return parallel_model
@@ -131,7 +138,7 @@ def patch_filter_saver(patch_dict, cnn_patch_dict, src_dir, model = None):
 
 def directory_list(parent_dir):
     """
-    Function to return a 
+    Function to return a channel_rescaling
     """
 
     dir_list = sorted(os.listdir(parent_dir))
@@ -164,7 +171,7 @@ if __name__ == "__main__":
     for strip_directory in ordered_dir_list:
         print(strip_directory)
         # import mosaic
-        mosaic = import_preproc_dicom(strip_directory, flatten = False)
+        mosaic = import_srh_dicom(strip_directory, flatten = False)
         # returns the patches to save and patches to pass to CNN
         patches, cnn_patch_dict = patch_generator_cnn_filter(mosaic, step_size=200)
         # save patches

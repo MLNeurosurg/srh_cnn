@@ -1,6 +1,7 @@
+#!/usr/bin/env python3
 
 '''
-Script to facilitate finding image patches that are diagnostic for a specific tumor class
+Script to find patches that are diagnostic for a specific tumor class
 '''
 
 import os
@@ -31,16 +32,6 @@ tumor_dict = {'ependymoma': 0,
  'schwannoma':12,
  'whitematter': 13}
 
-##### Variables to change
-tumor_type = "whitematter"
-n_images_per_case = 100
-source_dir = os.path.join("/home/todd/Desktop/CNN_Images/columbia_trial_tiles", tumor_type)
-dest_dir = os.path.join("/home/todd/Desktop/tsne_patches/columbia", tumor_type)
-
-
-#####
-incorrect_list = ["NIO10035", "NIO10036", "NIO10100", "NIO10101", "NIO10116", "NIO123", "NIO155", "NIO157", 
-"NIO209", "NIO212", "NIO228", "NIO253", "NIO315", "NIO317", "NIO320"]
 
 def nio_preprocessing_function(image):
 	image[:,:,0] -= 102.1
@@ -49,9 +40,9 @@ def nio_preprocessing_function(image):
 	return(image)
 
 def random_image_selector(patientlist, filelist):
-
+	"""
 	# output a dictionary with each patient as key and values is list of filenames
-
+	"""
 	patient_file_dict = defaultdict(list)
 	for patient in patientlist:
 
@@ -60,17 +51,19 @@ def random_image_selector(patientlist, filelist):
 
 		selected_files = []
 
-		while (len(selected_files) != n_images_per_case) and (counter < 1000):
+		while (len(selected_files) != n_images_per_patient) and (counter < 1000):
 			
 			random_file = np.random.choice(patient_files)
 			counter += 1
 
-			if random_file in selected_files: # make sure not already selected
+			# sampling without replacement
+			if random_file in selected_files:
 				continue
 
-			# incorrect cases
+			# exclude incorrect cases
 			if patient in incorrect_list:
-				selected_files.append(random_file) # just select random files
+				continue
+				# selected_files.append(random_file)
 
 			else: 
 				img = imread(source_dir + '/' + random_file)
@@ -90,7 +83,7 @@ def selected_file_saver(image_dict):
 
 	bad_dict = {}
 	for patient, filelist in image_dict.items():
-		if len(filelist) != n_images_per_case:
+		if len(filelist) != n_images_per_patient:
 			bad_dict[patient] = len(filelist)
 
 	for patient, filelist in image_dict.items():
@@ -101,11 +94,24 @@ def selected_file_saver(image_dict):
 
 if __name__ == '__main__':
 	
+
+	tumor_type = ""
+	n_images_per_patient = 100
+	source_dir = os.path.join("", tumor_type)
+	dest_dir = os.path.join("", tumor_type)
+	incorrect_list = []
+
 	model = load_model("/home/todd/Desktop/Models/model_for_activations_Final_Resnet_weights.03-0.86.hdf5")
 
-	filelist = os.listdir(source_dir) # list of all filenames
-	filelist = [file for file in filelist if ("tif" in file) or ("png" in file)] # filter non image files
-	patientlist = sorted(list(set([file.split("-")[0] for file in filelist]))) # sorted list of all patient names
+	# list of all filenames
+	filelist = os.listdir(source_dir) 
+	
+	# filter any non image files
+	filelist = [file for file in filelist if ("tif" in file) or ("png" in file)] 
+	
+	# sorted list of all patient names
+	patientlist = sorted(list(set([file.split("-")[0] for file in filelist]))) 
 
+	# run functions
 	img_dict = random_image_selector(patientlist, filelist)
 	selected_file_saver(img_dict)

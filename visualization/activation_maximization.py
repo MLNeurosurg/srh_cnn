@@ -1,4 +1,4 @@
-
+#!/usr/bin/env python3
 
 import matplotlib.pyplot as plt
 import seaborn as sns
@@ -7,6 +7,7 @@ import os
 import seaborn as sns
 from keras import models
 from skimage.io import imread, show
+import imageio
 from skimage.transform import resize
 from skimage import filters
 from keras.applications.inception_resnet_v2 import InceptionResNetV2
@@ -22,40 +23,30 @@ import cv2
 
 from preprocessing.preprocess import cnn_preprocessing
 
-img_rows = 300
-img_cols = 300
-img_channels = 3
-total_classes = 14
-
-def find_layer_types(model, layer_string):
+def find_layer_types(model, layer_string = "conv"):
     """
     Function that will find all the layer names based on string match
     E.g. "act" for activation, "conv" for convolutional layers, etc. 
-
     """ 
     layer_outputs_all = [layer.output for layer in model.layers]
-    layer_outputs = []
     layer_names = []
     for layer in layer_outputs_all:
-        if "conv" in layer.name: 
+        if layer_string in layer.name: 
             layer_names.append(layer.name)
-            layer_outputs.append(layer)
-
     return layer_names
 
 #Define regularization functions
 def blur_regularization(img, grads, size = (5,5)):
     return cv2.blur(img, size)
-
 def decay_regularization(img, grads, decay = 0.8):
     return decay * img
-
 def clip_weak_pixel_regularization(img, grads, percentile = 1):
     clipped = img
     threshold = np.percentile(np.abs(img), percentile)
     clipped[np.where(np.abs(img) < threshold)] = 0
     return clipped
 
+# preprocessing function
 def process_image(x):
     # normalize tensor: center on 0., ensure std is 0.1
     x -= x.mean()
@@ -72,6 +63,9 @@ def rescale_image(img):
     return (img - img.min())/(img.max() - img.min())
 
 def gradient_ascent_iteration(loss_function, img):
+    """
+    Function that takes a single gradient ascent iteration with regularization
+    """
 
     loss_value, grads_value = loss_function([img])    
     gradient_ascent_step = img + grads_value * 0.9
@@ -93,7 +87,7 @@ def gradient_ascent_iteration(loss_function, img):
     img = img[None, :,:,:].astype(np.float32)
     return img
 
-def generate_pattern(layer_name, filter_index, size=150):
+def generate_pattern(layer_name, filter_index, img_size=150):
     '''
     Function that uses gradient ascent to maximize the activation of a hidden layer
     '''
@@ -104,7 +98,7 @@ def generate_pattern(layer_name, filter_index, size=150):
     grads /= (K.sqrt(K.mean(K.square(grads))) + 1e-5) #normalize the gradient tensor by dividing by its L2 norm
     iterate = K.function([model.input], [loss, grads]) 
 
-    input_img_data = np.random.random((1, size, size, 3)) # initalize random noise for input image
+    input_img_data = np.random.random((1, img_size, img_size, 3)) # initalize random noise for input image
     input_img_data -= input_img_data.mean() * 50 # mean center and multiple by variance (around 50 for most images)
 
     for i in range(100): # runs gradient ASCENT for N steps
@@ -177,7 +171,7 @@ def generate_pattern_time_series(layer_name, filter_index, iterations_record, si
 
 def generate_pattern_time_series_gif(layer_name, filter_index, iterations_record, size=150):
     '''
-    Function that uses gradient ascent to maximize the activation of a convolutional layerto help with visualization
+    Function that will save the AM image after specified iterations of gradients ascent as a list that can then be saved as a gif file
     '''
     layer_output = model.get_layer(layer_name).output
     
@@ -195,16 +189,14 @@ def generate_pattern_time_series_gif(layer_name, filter_index, iterations_record
     for i in range(num_iterations + 1):
         input_img_data = gradient_ascent_iteration(iterate, input_img_data)
         if i in iterations_record:
-            print("Found it", i)
+            print(i)
             results_iterations.append(process_image(input_img_data[0]))
 
     return results_iterations
 
-
 def save_gif(image_list, layer_name, filter_index):
     imageio.mimsave(layer_name + "_" + str(filter_index) + '_time_series.gif', image_list)
 
-    
 def find_max_activation(activation):
     
     bright_img = np.zeros((activation.shape[0], activation.shape[1]))
@@ -226,7 +218,7 @@ def import_images(directory):
 
 def activation_statistics(img_list, filter_num):
     act_list = []
-    for i in image_list:
+    for i in img_list:
         activation = activation_model.predict(cnn_preprocessing(i.astype(np.float64))[None,:,:,:]) # predict on each image
         activation = activation[0,:,:,filter_num].mean() # index into the filter of interest
         act_list.append(activation)
@@ -238,7 +230,7 @@ def layer_statistics(img_list):
     def activations(img_list):
         
         act_list = []
-        for i in image_list:
+        for i in img_list:
             activation = activation_model.predict(cnn_preprocessing(i.astype(np.float64))[None,:,:,:]) # predict on each image
             act_list.append(activation)
         return act_list
@@ -259,21 +251,23 @@ def layer_statistics(img_list):
 
 if __name__ == '__main__':
 
-    activation_model = models.Model(input=model.inputs, outputs=model.get_layer("activation_159").output) # indexing into the global average pooling layer 
-
+    # import model, this serves as a global variable
     model = load_model("")
+    activation_model = models.Model(input=model.inputs, outputs=model.get_layer("activation_159").output)  
     #model = InceptionResNetV2(weights="imagenet")
 
     test = generate_pattern("conv2d_159", 12)
     filter_dict = filter_activation_grid("conv2d_3")
 
+    # generate image series
     iterations = (1, 5, 10, 20, 50, 100, 200, 500)
-    img = generate_pattern_time_series(layer_name = "conv2d_159", filter_index = 70, iterations_record = iterations) # DEFINITELY USE 8, 14 IS BEST
+    img = generate_pattern_time_series(layer_name = "conv2d_159", filter_index = 70, iterations_record = iterations)
     plt.imshow(img)
 
-
-
-        
+    # generate gif
+    img_list = generate_pattern_time_series_gif(layer_name = "conv2d_159", filter_index = 70, iterations_record = iterations)
+    save_gif(image_list = img_list, layer_name = "conv2d_159", filter_index = 70)
+    
         
         
         

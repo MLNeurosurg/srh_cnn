@@ -1,7 +1,12 @@
 '''
 Functions and subroutines to evaluate predictions of SRH-CNN model over full mosaics and patients.
+This scripts is designed specifically to import patches that have already been generated and saved using an older preprocessing routine. 
 
-This scripts is designed specifically to import images that have already been patched, saved and imported using specific routines.
+A MUCH easier method is to predict starting from raw SRH strips using:
+    1) import_srh_dicom
+    2) patch_generator
+    3) prediction
+    4) heatmaps
 '''
  
 import os
@@ -315,8 +320,6 @@ def tiling_fovs_groundtruth(mosaic_list, tumortype_int):
         for tuples in single_mosaic_list:
             if int(tuples[0]) == int(key):
                 single_mosaic_dict[key].append(tuples) # populate the dictionary with tuples from the list: eg {2: (fov, tile, filename, array, label, tumor)}
-
-    # additional code block to change the prediction array to the 
 
     '''
     Block that pools the neighboring patch probabilities and generates a averaged softmax for each heatmap pixel

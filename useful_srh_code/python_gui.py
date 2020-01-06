@@ -1,3 +1,4 @@
+#!/usr/bin/env python3
 
 """
 Simple, lightweight GUI to help with annotating SRH images

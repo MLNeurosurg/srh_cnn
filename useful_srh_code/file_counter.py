@@ -1,4 +1,8 @@
+#!/usr/bin/env python3
 
+"""
+Script to quickly count the number of files in a directory with or without string matching. 
+"""
 
 import os
 import argparse

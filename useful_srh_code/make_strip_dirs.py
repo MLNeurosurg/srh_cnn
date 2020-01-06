@@ -1,14 +1,13 @@
+#!/usr/bin/env python3
 
 """
-Script to generate individual directories for each SRS mosaic's raw strips
+Script to generate individual directories for each SRS mosaic's raw strips and move them to the newly made individual directories
 root = root that contains the Study NIO directories
 dest = directory to save all the moved raw files
 """
-
 import os
 import shutil
 import numpy as np
-
 
 def make_strip_directories(src, dest):
     

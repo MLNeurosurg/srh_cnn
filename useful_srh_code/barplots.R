@@ -16,7 +16,7 @@ library(forcats)
 library(wesanderson)
 
 
-setwd("/home/todd/Desktop/")
+setwd("")
 # import tumor cases
 df_importer <- function(filename, sheet_num){
   df <- read_excel(filename, sheet = sheet_num, col_names = TRUE)

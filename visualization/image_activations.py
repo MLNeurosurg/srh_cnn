@@ -1,4 +1,4 @@
-
+#!/usr/bin/env python3
 
 from keras.models import load_model
 from keras.models import Model
@@ -39,11 +39,13 @@ def plot_activations_imagenet(model, image, activation_layer):
 
 if __name__ == "__main__":
 
-    # model = InceptionResNetV2(weights = "imagenet")
+
+    # load models
     model = load_model("")
-    model_imagenet = InceptionResNetV2(weights="imagenet")
+    # model_imagenet = InceptionResNetV2(weights="imagenet")
 
-    img = imread("/home/todd/Desktop/NIO105-1058_3_tile_013_6.tif").astype(np.float64)
+    # import single image
+    img = imread("").astype(np.float64)
 
-    plot_activations(model_imagenet, img, activation_layer = 3)
+    plot_activations(model, img, activation_layer = 3)
 

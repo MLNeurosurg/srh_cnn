@@ -1,74 +1,28 @@
+#!/usr/bin/env python3
 
-'''
-Model performance script
-1) Accuracy
-2) ROCs
-3) Error analysis
-4) Mosaic level predictions/evaluations
-
-'''
-
-from evaluation import *
 import os
 import numpy as np
 
 # Keras Deep Learning modules
 from keras.models import load_model
+from keras.preprocessing.image import ImageDataGenerator
+from keras.models import load_model
 from keras import backend as K
-from keras.preprocessing.image import ImageDataGenerator # may not need this
-# Model and layer import
-from keras.utils import multi_gpu_model
-from keras.models import Sequential, Model, Input
-from keras.layers import Input, Dense, Dropout, BatchNormalization, Activation
-from keras.layers import Conv2D, GlobalMaxPool2D, GlobalAveragePooling2D 
 
-# Open-source models
 from keras.applications.inception_resnet_v2 import InceptionResNetV2
-from model_training import srh_model
+from training.model_training import validation_batch_steps
+from prediction.evaluation_from_files import *
 
-'''
-WITH NORMAL
-{'ependymoma': 0,
- 'glioblastoma': 1,
- 'greymatter': 2,
- 'lowgradeglioma': 3,
- 'lymphoma': 4,
- 'medulloblastoma': 5,
- 'meningioma': 6,
- 'metastasis': 7,
- 'nondiagnostic': 8,
- 'pilocyticastrocytoma': 9,
- 'pituitaryadenoma': 10,
- 'pseudoprogression': 11,
- 'schwannoma':12,
- 'whitematter': 13}
-
-WITHOUT NORMAL and Gliosis
-{'ependymoma': 0,
- 'glioblastoma': 1,
- 'lowgradeglioma': 2,
- 'lymphoma': 3,
- 'medulloblastoma': 4,
- 'meningioma': 5,
- 'metastasis': 6,
- 'nondiagnostic': 7,
- 'pilocyticastrocytoma': 8,
- 'pituitaryadenoma': 9,
- 'schwannoma: 10}
-'''
-
-parallel_model = srh_model()
-
-# Distribute model across GPUs
-parallel_model = multi_gpu_model(model, gpus=2)
-parallel_model.load_weights("/home/todd/Desktop/Models/Final_Resnet_weights.03-0.86PAPERMODEL.hdf5")
 
 def cnn_predictions(model, validation_generator):
     cnn_predictions = model.predict_generator(validation_generator, steps = val_steps, verbose = True)
     return cnn_predictions
 
+# Import model
+parallel_model = load_model('')
+
 # Specify directory with images for prediction
-validation_dir = '/home/todd/Desktop/CNN_Images/columbia_trial_tiles'
+validation_dir = ''
 
 # Define batch size and number of steps
 val_batch, val_steps = validation_batch_steps(validation_dir)

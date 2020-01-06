@@ -26,7 +26,7 @@ import pydicom as dicom
 
 from preprocessing.preprocess import *
 from preprocessing.registration import *
-from preprocessing.io import import_preproc_dicom, import_raw_dicom
+from preprocessing.io import import_srh_dicom
 
 IMAGE_SIZE = 300
 
@@ -44,7 +44,7 @@ def starts_finder(side, stride, image_size):
         starts.append(starts[-1] + stride)
     return starts
 
-def patch_generator(preprocessed_mosaic, step_size = 100, old_preprocess = False):
+def patch_generator(preprocessed_mosaic, step_size = 100, renorm_red = False):
     """
     Function that accepted preprocessed mosaic 
     """
@@ -57,24 +57,30 @@ def patch_generator(preprocessed_mosaic, step_size = 100, old_preprocess = False
         for x in starts:
             # select the region of the mosaic
             patch = preprocessed_mosaic[y:y + IMAGE_SIZE, x:x + IMAGE_SIZE, :]
-            _, CH2, CH3 = return_channels(patch)
-            CH2 = min_max_rescaling(CH2)
-            CH3 = min_max_rescaling(CH3)
             
-            # channel subtraction
-            subtracted_array = np.subtract(CH3, CH2) # CH3 minus CH2
-            subtracted_array[subtracted_array < 0] = 0.0 # negative values set to zero
+            if renorm_red:
+                # this preprocessing scheme renormalizes the red channel also
+                # can produce artifact if image image is very bloody
+                patch = channel_preprocessing(subtracted_array)
+                patch_dict[counter1] = patch
 
-            if old_preprocess:
-                subtracted_array = min_max_rescaling(subtracted_array)
+            else: 
+                
+                _, CH2, CH3 = return_channels(patch)
+                CH2 = min_max_rescaling(CH2)
+                CH3 = min_max_rescaling(CH3)
+                
+                # channel subtraction
+                subtracted_array = np.subtract(CH3, CH2) # CH3 minus CH2
+                subtracted_array[subtracted_array < 0] = 0.0 # negative values set to zero
 
-            # concatentate the postprocessed images
-            stack = np.zeros((CH2.shape[0], CH2.shape[1], 3), dtype=np.float)
-            stack[:, :, 0] = subtracted_array
-            stack[:, :, 1] = CH2
-            stack[:, :, 2] = CH3
-            patch_dict[counter1] = stack * 255
-            counter1 += 1
+                # concatentate the postprocessed images
+                stack = np.zeros((CH2.shape[0], CH2.shape[1], 3), dtype=np.float)
+                stack[:, :, 0] = subtracted_array
+                stack[:, :, 1] = CH2
+                stack[:, :, 2] = CH3
+                patch_dict[counter1] = stack * 255
+                counter1 += 1
 
     return patch_dict
     
@@ -118,7 +124,7 @@ if __name__ == "__main__":
     for strip_directory in ordered_dir_list:
         print(strip_directory)
         # import mosaic
-        mosaic = import_preproc_dicom(strip_directory, flatten = True, filter_type = "gaussian")
+        mosaic = import_srh_dicom(strip_directory, flatten=False)
         # returns the patches to save and patches to pass to CNN
         patches = patch_generator(mosaic, step_size=200)
         # save patches

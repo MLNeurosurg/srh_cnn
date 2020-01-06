@@ -1,4 +1,8 @@
+#!/usr/bin/env python3
 
+"""
+Script to train and implement the Mahalanobis distance-based confidence score to identify rare tumor type
+"""
 
 import os
 import sys
@@ -21,8 +25,10 @@ from collections import defaultdict
 from keras.preprocessing.image import ImageDataGenerator
 from pandas import DataFrame
 
+from preprocessing.io import import_srh_dicom
 from preprocessing.preprocess import cnn_preprocessing
 from preprocessing.patch_generator import patch_generator
+from training.model_training import find_pair_factors_for_CNN, validation_batch_steps
 
 img_rows = 300
 img_cols = 300
@@ -43,45 +49,6 @@ class_names = ['ependymoma',
  'pseudoprogression',
  'schwannoma',
  'whitematter']
-
-layer_outputs = [
-"conv2d_159",
-"conv2d_195",
-"conv2d_199",
-"conv2d_203",
-"average_pool",
-"dense",
-"softmax"]
-
-def cnn_preprocessing(image):
-    """
-    Channel-wise means calculated over NIO dataset
-    """
-    image[:,:,0] -= 102.1
-    image[:,:,1] -= 91.0
-    image[:,:,2] -= 101.5
-    return image
-
-def find_pair_factors_for_CNN(x):
-    """
-    Function to match batch size and iterations for the validation generator
-    """
-    pairs = []
-    for i in range(2, 150):
-        test = x/i
-        if i * int(test) == x:
-            pairs.append((i, int(test)))
-    best_pair = pairs[-1]
-    assert len(pairs) >= 1, "No pairs found"
-    print(best_pair)
-    return best_pair
-
-def validation_batch_steps(directory):
-    counter = 0
-    for roots, dirs, files in os.walk(directory):
-        for file in files:
-            counter += 1
-    return find_pair_factors_for_CNN(counter)
 
 def mahalanobis_model(parent_model_path):
     """
@@ -238,7 +205,7 @@ def directory_iterator(root):
     for mosaic_dir in mosaic_dirs:
         counter += 1
 
-        mosaic = import_raw_dicom(os.path.join(root, mosaic_dir))
+        mosaic = import_srh_dicom(os.path.join(root, mosaic_dir))
         patches = patch_generator(mosaic)
         inference_mah = feedforward(patches, model=output_model)
         score_dict = mahalanobis_score_ensemble(maha_class, inference_mah)
@@ -286,6 +253,16 @@ if __name__ == "__main__":
     model_path = ''
     training_dir = ''
 
+    # layers to use in the model ensemble
+    layer_outputs = [
+    "conv2d_159",
+    "conv2d_195",
+    "conv2d_199",
+    "conv2d_203",
+    "average_pool",
+    "dense",
+    "softmax"]
+
     output_model = mahalanobis_model(model_path)
 
     val_batch, val_steps = validation_batch_steps(training_dir)
@@ -306,7 +283,7 @@ if __name__ == "__main__":
     mosaic_dict = directory_iterator("")
     export_mahalanobis_scores(mosaic_dict, layer_outputs, metric="mean")
 
-    mosaic = import_raw_dicom("")
+    mosaic = import_srh_dicom("")
     patches = patch_generator(mosaic)
     inference_mah = feedforward(patches, model=output_model)
     mosaic_dict = mahalanobis_score_ensemble(maha_class, inference_mah)

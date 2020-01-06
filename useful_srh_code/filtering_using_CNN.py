@@ -6,7 +6,6 @@ Script to parse images based on CNN predictions for:
 	4) Grey matter
 '''
 
-
 from skimage.io import imread, imsave
 import numpy as np
 import shutil
@@ -25,21 +24,6 @@ from keras.layers import Input, Dense, Dropout, BatchNormalization, Activation
 from keras.layers import Conv2D, GlobalMaxPool2D, GlobalAveragePooling2D 
 from keras.regularizers import l2 
 
-# NIO_numbers_test = {
-# "ependymoma": [],
-# "glioblastoma": [],
-# "greymatter": [],
-# "lowgradeglioma": [],
-# "lymphoma": [],
-# "medulloblastoma": [],
-# "meningioma": [],
-# "metastasis": [],
-# "nondiagnostic": [],
-# "pilocyticastrocytoma": [],
-# "pituitaryadenoma": [],
-# "pseudoprogression": [],
-# "whitematter": []
-# }
 
 img_rows = 300
 img_cols = 300

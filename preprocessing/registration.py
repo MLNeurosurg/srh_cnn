@@ -1,6 +1,7 @@
+#!/usr/bin/env python3
 
 '''
-imreg_dft code
+The code to calculate the FFT transform for registration is from imreg_dft. It has been adapted for our application to SRH images. 
 https://anaconda.org/conda-forge/imreg_dft
 '''
 
