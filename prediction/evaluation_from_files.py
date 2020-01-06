@@ -1,3 +1,5 @@
+#!/usr/bin/env python3
+
 '''
 Functions and subroutines to evaluate predictions of SRH-CNN model over full mosaics and patients.
 This scripts is designed specifically to import patches that have already been generated and saved using an older preprocessing routine. 
