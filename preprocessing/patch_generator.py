@@ -61,7 +61,7 @@ def patch_generator(preprocessed_mosaic, step_size = 100, renorm_red = False):
             if renorm_red:
                 # this preprocessing scheme renormalizes the red channel also
                 # can produce artifact if image image is very bloody
-                patch = channel_preprocessing(subtracted_array)
+                patch = channel_rescaling(patch)
                 patch_dict[counter1] = patch
 
             else: 

@@ -45,7 +45,7 @@ if __name__ == "__main__":
     print("SRH mosaic size is: " + str(specimen.shape))
 
     # generate preprocessed image patches
-    patches = patch_generator(specimen, step_size=100, old_preprocess=True)
+    patches = patch_generator(specimen, step_size=100, renorm_red=True)
     del specimen
 
     # predict on patches
